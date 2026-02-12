@@ -1,32 +1,25 @@
 const { MongoClient } = require('mongodb');
 
-// استخدام متغير البيئة الذي أضفته في Vercel
 const uri = process.env.MONGODB_URI;
-let cachedClient = null;
+let client;
 
-export default async function handler(req, res) {
-    if (!uri) {
-        return res.status(500).json({ error: "MONGODB_URI is not defined" });
-    }
-
+module.exports = async (req, res) => {
     try {
-        if (!cachedClient) {
-            cachedClient = new MongoClient(uri);
-            await cachedClient.connect();
+        if (!client) {
+            client = new MongoClient(uri);
+            await client.connect();
         }
-        
-        const db = cachedClient.db('clinic_db');
+        const db = client.db('clinic_db');
         const collection = db.collection('patients');
 
         if (req.method === 'POST') {
-            const result = await collection.insertOne(req.body);
-            return res.status(200).json(result);
-        } else if (req.method === 'GET') {
-            const patients = await collection.find({}).toArray();
-            return res.status(200).json(patients);
+            await collection.insertOne(req.body);
+            return res.status(200).json({ success: true });
+        } else {
+            const data = await collection.find({}).toArray();
+            return res.status(200).json(data);
         }
-    } catch (e) {
-        console.error(e);
-        res.status(500).json({ error: "فشل الاتصال بـ MongoDB: " + e.message });
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
     }
-}
+};
