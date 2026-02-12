@@ -16,35 +16,42 @@
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div class="bg-green-50 p-4 rounded-lg shadow">
-            <h2 class="font-bold text-green-700 mb-4 border-b border-green-200 pb-2">قائمة الانتظار</h2>
+            <h2 class="font-bold text-green-700 mb-4 border-b border-green-200 pb-2 text-center">قائمة الانتظار</h2>
             <div id="waitingList" class="space-y-3"></div>
         </div>
         <div class="bg-yellow-50 p-4 rounded-lg shadow">
-            <h2 class="font-bold text-yellow-700 mb-4 border-b border-yellow-200 pb-2">مع الطبيب</h2>
+            <h2 class="font-bold text-yellow-700 mb-4 border-b border-yellow-200 pb-2 text-center">مع الطبيب</h2>
             <div id="doctorList" class="space-y-3"></div>
         </div>
         <div class="bg-gray-50 p-4 rounded-lg shadow">
-            <h2 class="font-bold text-gray-700 mb-4 border-b border-gray-200 pb-2">انتهى</h2>
+            <h2 class="font-bold text-gray-700 mb-4 border-b border-gray-200 pb-2 text-center">انتهى</h2>
             <div id="finishedList" class="space-y-3"></div>
         </div>
     </div>
 
     <script>
-        // وظيفة لجلب البيانات من MongoDB عند فتح الموقع
+        // وظيفة لجلب البيانات من MongoDB فور فتح الموقع
         async function loadPatients() {
-            const res = await fetch('/api/patients');
-            const data = await res.json();
-            data.forEach(p => displayPatient(p));
+            try {
+                const res = await fetch('/api/patients');
+                const data = await res.json();
+                document.getElementById('waitingList').innerHTML = ""; // تنظيف القائمة
+                data.forEach(p => displayPatient(p));
+            } catch (err) { console.error("خطأ في التحميل:", err); }
         }
 
         async function addPatient() {
             const nameInput = document.getElementById('patientName');
             const name = nameInput.value;
-            if (!name) return alert("اكتب الاسم");
+            if (!name) return alert("يرجى كتابة الاسم");
 
-            const newPatient = { name: name, status: 'waiting', time: new Date().toLocaleTimeString('ar-EG') };
+            const newPatient = { 
+                name: name, 
+                status: 'waiting', 
+                time: new Date().toLocaleTimeString('ar-EG') 
+            };
 
-            // إرسال المريض لـ MongoDB
+            // إرسال البيانات للجسر (API) ليضعها في MongoDB
             const res = await fetch('/api/patients', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -54,13 +61,18 @@
             if (res.ok) {
                 displayPatient(newPatient);
                 nameInput.value = "";
+            } else {
+                alert("فشل الحفظ في قاعدة البيانات. تأكد من إعدادات MongoDB");
             }
         }
 
         function displayPatient(p) {
             const card = document.createElement('div');
             card.className = "bg-white p-3 rounded shadow-sm border-r-4 border-green-500";
-            card.innerHTML = `<p class="font-bold">${p.name}</p><p class="text-xs text-gray-400">${p.time}</p>`;
+            card.innerHTML = `
+                <p class="font-bold text-gray-800">${p.name}</p>
+                <p class="text-xs text-gray-400">وقت الدخول: ${p.time}</p>
+            `;
             document.getElementById('waitingList').appendChild(card);
         }
     </script>
