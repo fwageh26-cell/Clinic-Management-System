@@ -1,25 +1,32 @@
 const { MongoClient } = require('mongodb');
 
-const uri = process.env.MONGODB_URI; // سنقوم بضبط هذا المتغير في Vercel لاحقاً
-const client = new MongoClient(uri);
+// استخدام متغير البيئة الذي أضفته في Vercel
+const uri = process.env.MONGODB_URI;
+let cachedClient = null;
 
 export default async function handler(req, res) {
-    try {
-        await client.connect();
-        const database = client.db('clinic_db');
-        const patients = database.collection('patients');
+    if (!uri) {
+        return res.status(500).json({ error: "MONGODB_URI is not defined" });
+    }
 
-        if (req.method === 'GET') {
-            const allPatients = await patients.find({}).toArray();
-            return res.status(200).json(allPatients);
+    try {
+        if (!cachedClient) {
+            cachedClient = new MongoClient(uri);
+            await cachedClient.connect();
         }
+        
+        const db = cachedClient.db('clinic_db');
+        const collection = db.collection('patients');
 
         if (req.method === 'POST') {
-            const newPatient = req.body;
-            const result = await patients.insertOne(newPatient);
-            return res.status(201).json(result);
+            const result = await collection.insertOne(req.body);
+            return res.status(200).json(result);
+        } else if (req.method === 'GET') {
+            const patients = await collection.find({}).toArray();
+            return res.status(200).json(patients);
         }
-    } catch (error) {
-        res.status(500).json({ error: 'حدث خطأ في الاتصال بقاعدة البيانات' });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: "فشل الاتصال بـ MongoDB: " + e.message });
     }
 }
