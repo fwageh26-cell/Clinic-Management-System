@@ -34,3 +34,79 @@
     </div>
 </body>
 </html>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>MediFlow - نظام العيادة الذكي</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-4 md:p-8">
+    <h1 class="text-3xl font-bold text-center mb-8 text-blue-600">نظام إدارة العيادة (MediFlow)</h1>
+    
+    <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md mb-10">
+        <h3 class="font-bold mb-4 text-gray-700">تسجيل مريض جديد</h3>
+        <input id="patientName" type="text" placeholder="اسم المريض" class="w-full p-2 border rounded mb-3">
+        <button onclick="addPatient()" class="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition">إضافة إلى قائمة الانتظار</button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-green-50 p-4 rounded-lg shadow">
+            <h2 class="font-bold text-green-700 mb-4 border-b border-green-200 pb-2">قائمة الانتظار (Waiting)</h2>
+            <div id="waitingList" class="space-y-3">
+                </div>
+        </div>
+
+        <div class="bg-yellow-50 p-4 rounded-lg shadow">
+            <h2 class="font-bold text-yellow-700 mb-4 border-b border-yellow-200 pb-2">مع الطبيب (With Doctor)</h2>
+            <div id="doctorList" class="space-y-3"></div>
+        </div>
+
+        <div class="bg-gray-50 p-4 rounded-lg shadow">
+            <h2 class="font-bold text-gray-700 mb-4 border-b border-gray-200 pb-2">انتهى (Finished)</h2>
+            <div id="finishedList" class="space-y-3"></div>
+        </div>
+    </div>
+
+    <script>
+        function addPatient() {
+            const nameInput = document.getElementById('patientName');
+            const name = nameInput.value;
+            
+            if (name.trim() === "") {
+                alert("يرجى إدخال اسم المريض");
+                return;
+            }
+
+            // إنشاء بطاقة المريض
+            const card = document.createElement('div');
+            card.className = "bg-white p-3 rounded shadow-sm border-r-4 border-green-500 flex justify-between items-center";
+            card.innerHTML = `
+                <div>
+                    <p class="font-bold">${name}</p>
+                    <p class="text-xs text-gray-400">وصول: ${new Date().toLocaleTimeString('ar-EG')}</p>
+                </div>
+                <button onclick="moveToDoctor(this)" class="text-xs bg-yellow-500 text-white px-2 py-1 rounded">دخول للطبيب</button>
+            `;
+
+            document.getElementById('waitingList').appendChild(card);
+            nameInput.value = ""; // مسح الخانة بعد الإضافة
+        }
+
+        function moveToDoctor(btn) {
+            const card = btn.parentElement;
+            card.className = "bg-white p-3 rounded shadow-sm border-r-4 border-yellow-500 flex justify-between items-center";
+            btn.textContent = "إنهاء الكشف";
+            btn.onclick = function() { moveToFinished(this) };
+            document.getElementById('doctorList').appendChild(card);
+        }
+
+        function moveToFinished(btn) {
+            const card = btn.parentElement;
+            card.className = "bg-white p-3 rounded shadow-sm border-r-4 border-gray-400";
+            btn.remove(); // حذف الزر عند الانتهاء
+            document.getElementById('finishedList').appendChild(card);
+        }
+    </script>
+</body>
+</html>
