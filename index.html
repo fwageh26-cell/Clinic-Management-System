@@ -22,7 +22,7 @@
     <script>
         async function loadPatients() {
             try {
-                const res = await fetch('/api/clinic');
+              const response = await fetch('/api/clinic', { ... });
                 const data = await res.json();
                 const list = document.getElementById('list');
                 list.innerHTML = "";
@@ -36,7 +36,7 @@
             const name = document.getElementById('pName').value;
             if(!name) return alert("اكتب الاسم أولاً");
 
-            const res = await fetch('/api/clinic', {
+            const response = await fetch('/api/clinic', { ... });
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ name: name, time: new Date().toLocaleTimeString() })
